@@ -1,0 +1,10 @@
+
+CLOCK = 100
+
+short 50
+
+medium 100
+
+long 150
+
+very long 600
