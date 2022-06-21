@@ -103,8 +103,10 @@ void threadFunction(void *param) {
 
 void decodeInput() {
     uint8_t* messageBytesReceived = trameManager.getMessageBytes(buffer, bufferSize);
-    char* messageReceived = messagesConverter.getChars(messageBytesReceived, bufferSize/8);
-    Serial.printlnf("\nMessage : %s", messageReceived);
+    if(*messageBytesReceived != 0) {
+        char* messageReceived = messagesConverter.getChars(messageBytesReceived, bufferSize/8);
+        Serial.printlnf("\nMessage : %s", messageReceived);
+    }
 }
 
 void setNextState(TimePeriod timePeriod) {

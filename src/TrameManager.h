@@ -14,7 +14,7 @@ using namespace std;
 class TrameManager {
     public:
         const static int nbBytesMax = 80;
-        const static bool simulateError = true;
+        const static bool simulateError = false;
 
         int* getTrame(uint8_t* message, uint8_t size) {
 
@@ -51,6 +51,14 @@ class TrameManager {
             uint8_t buffer[nbBytesMax] = {};
             static uint8_t message[nbBytesMax-4] = {};
 
+            if(simulateError) {
+                if(trame[20] == 0 ) {
+                    trame[20] = 1;
+                } else {
+                    trame[20] = 0;
+                }
+            }
+
             for(int i = 0; i < size/8; i++) {
                 buffer[i] = 0;
                 for(int j = 0; j < 8; j++) {
@@ -72,8 +80,8 @@ class TrameManager {
             //Serial.println(crc16Received);
 
             if(crc16Calculated != crc16Received) {
-                Serial.println("CRC16 ERROR");
-                return message;
+                Serial.println("\nCRC16 ERROR");
+                return 0;
             } else {
                 return message;
             }
