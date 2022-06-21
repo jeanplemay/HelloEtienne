@@ -1,10 +1,16 @@
 #include "Particle.h"
 
+#include "TrameManager.h"
+#include "MessagesConverter.h"
+
 SYSTEM_THREAD(ENABLED);
 
 void threadFunction(void *param);
 
 Thread thread("testThread", threadFunction);
+
+TrameManager trameManager;
+MessagesConverter messagesConverter;
 
 volatile int counter = 0;
 unsigned long lastTime = 0;
@@ -23,7 +29,7 @@ enum States {
     output1,
     ignore_low,
     ignore_high,
-    end,
+    end_state,
     error
 };
 
@@ -38,8 +44,6 @@ enum TimePeriod {
 };
 
 int startEndBits[] = {0, 1, 1, 1, 1, 1, 1, 0};
-int bits[] = {1, 1, 1, 1, 0, 1, 0, 0};
-int bitsSize = 8;
 
 int buffer[640] = {};
 int bufferSize = 0;
@@ -60,6 +64,14 @@ void loop() {
 
 
 void threadFunction(void *param) {
+    int bitsSize;
+
+    char message[] = "Hello world";
+    int charSize = 11;
+    uint8_t* messageBytes = messagesConverter.getBytes(message, charSize);
+    int *bits = trameManager.getTrame(messageBytes, charSize);
+    bitsSize = (charSize+4)*8;
+
     int i = 0;
 	while(true) {
     
@@ -87,6 +99,12 @@ void threadFunction(void *param) {
         if(i > 15 + bitsSize) i = 0;
 	}
 	// You must not return from the thread function
+}
+
+void decodeInput() {
+    uint8_t* messageBytesReceived = trameManager.getMessageBytes(buffer, bufferSize);
+    char* messageReceived = messagesConverter.getChars(messageBytesReceived, bufferSize/8);
+    Serial.printlnf("Message : %s", messageReceived);
 }
 
 void setNextState(TimePeriod timePeriod) {
@@ -118,7 +136,7 @@ void setNextState(TimePeriod timePeriod) {
             if (timePeriod == shortPeriod) {
                 nextState = output0;
             } else if (timePeriod == mediumPeriod) {
-                nextState = end;
+                nextState = end_state;
             } else {
                 nextState = error;
             }
@@ -140,13 +158,13 @@ void setNextState(TimePeriod timePeriod) {
             } else if (timePeriod == mediumPeriod) {
                 nextState = output0;
             } else if (timePeriod == longPeriod) {
-                nextState = end;
+                nextState = end_state;
             } else {
                 nextState = error;
             }
             break;
-        case end:
-            Serial.println("CURRENT STATE : end");
+        case end_state:
+            Serial.println("CURRENT STATE : end_state");
             if(timePeriod == veryLongPeriod) {
                 nextState = init;
             } else {
@@ -173,12 +191,11 @@ void setOutput() {
             Serial.println("1");
             buffer[bufferSize++] = 1;
             break;
-        case end:
-            //TODO décodage et print
+        case end_state:
             for (int i = 0; i < bufferSize; i++) {
                 Serial.print(buffer[i]);
             }
-            Serial.println("END");
+            decodeInput();
             break;
         case error:
             Serial.println("ERROR");
