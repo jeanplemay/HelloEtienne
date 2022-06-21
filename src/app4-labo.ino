@@ -104,19 +104,19 @@ void threadFunction(void *param) {
 void decodeInput() {
     uint8_t* messageBytesReceived = trameManager.getMessageBytes(buffer, bufferSize);
     char* messageReceived = messagesConverter.getChars(messageBytesReceived, bufferSize/8);
-    Serial.printlnf("Message : %s", messageReceived);
+    Serial.printlnf("\nMessage : %s", messageReceived);
 }
 
 void setNextState(TimePeriod timePeriod) {
     switch (currentState) {
         case init:
-            Serial.println("CURRENT STATE : init");
+            //Serial.println("CURRENT STATE : init");
             if (timePeriod == veryLongPeriod) {
                 nextState = start;
             }
             break;
         case start:
-            Serial.println("CURRENT STATE : start");
+            //Serial.println("CURRENT STATE : start");
             if (timePeriod == mediumPeriod) {
                 nextState = ignore_high;
             } else if (timePeriod == longPeriod) {
@@ -124,7 +124,7 @@ void setNextState(TimePeriod timePeriod) {
             }
             break;
         case ignore_high:
-            Serial.println("CURRENT STATE : ignore_high");
+            //Serial.println("CURRENT STATE : ignore_high");
             if (timePeriod == shortPeriod) {
                 nextState = output1;
             } else {
@@ -132,7 +132,7 @@ void setNextState(TimePeriod timePeriod) {
             }
             break;
         case ignore_low:
-            Serial.println("CURRENT STATE : ignore_low");
+            //Serial.println("CURRENT STATE : ignore_low");
             if (timePeriod == shortPeriod) {
                 nextState = output0;
             } else if (timePeriod == mediumPeriod) {
@@ -142,7 +142,7 @@ void setNextState(TimePeriod timePeriod) {
             }
             break;
         case output0:
-            Serial.println("CURRENT STATE : output0:");
+            //Serial.println("CURRENT STATE : output0:");
             if (timePeriod == shortPeriod) {
                 nextState = ignore_low;
             } else if (timePeriod == mediumPeriod) {
@@ -152,7 +152,7 @@ void setNextState(TimePeriod timePeriod) {
             }
             break;
         case output1:
-            Serial.println("CURRENT STATE : output1");
+            //Serial.println("CURRENT STATE : output1");
             if (timePeriod == shortPeriod) {
                 nextState = ignore_high;
             } else if (timePeriod == mediumPeriod) {
@@ -164,7 +164,7 @@ void setNextState(TimePeriod timePeriod) {
             }
             break;
         case end_state:
-            Serial.println("CURRENT STATE : end_state");
+            //Serial.println("CURRENT STATE : end_state");
             if(timePeriod == veryLongPeriod) {
                 nextState = init;
             } else {
@@ -172,7 +172,7 @@ void setNextState(TimePeriod timePeriod) {
             }
             break;
         case error:
-            Serial.println("CURRENT STATE : error");
+            //Serial.println("CURRENT STATE : error");
             nextState = init;
             break;
     }
@@ -207,7 +207,7 @@ void setOutput() {
 
 void manchesterInput() {
     int time = millis() - lastTime;
-    Serial.printlnf("time=%d",time);
+    //Serial.printlnf("time=%d",time);
     lastTime = millis();
 
     TimePeriod timePeriod;
