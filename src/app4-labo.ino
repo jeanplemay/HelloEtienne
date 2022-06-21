@@ -12,7 +12,6 @@ Thread thread("testThread", threadFunction);
 TrameManager trameManager;
 MessagesConverter messagesConverter;
 
-volatile int counter = 0;
 unsigned long lastTime = 0;
 system_tick_t lastThreadTime = 0;
 
@@ -20,7 +19,11 @@ int PIN_LED = D7;
 int PIN_IN = D2;
 int PIN_OUT = D3;
 
-float CLOCK_PERIOD = 100;
+float CLOCK_PERIOD = 50;
+
+float clockPeriodReceive = 0;
+float counter = 0;
+float total = 0;
 
 enum States {
     init,
@@ -43,6 +46,7 @@ enum TimePeriod {
     veryLongPeriod
 };
 
+int preambuleBits[] = {0, 1, 0, 1, 0, 1, 0, 1};
 int startEndBits[] = {0, 1, 1, 1, 1, 1, 1, 0};
 
 int buffer[640] = {};
@@ -73,6 +77,12 @@ void threadFunction(void *param) {
     bitsSize = (charSize+4)*8;
 
     int i = 0;
+    os_thread_delay_until(&lastThreadTime, 5*1000);
+
+    for(int j=0; j < 8; j++) {
+        digitalWrite(PIN_OUT, preambuleBits[j]);
+        os_thread_delay_until(&lastThreadTime, CLOCK_PERIOD);
+    }
 	while(true) {
     
         digitalWrite(PIN_LED, bits[i]);
@@ -212,18 +222,29 @@ void manchesterInput() {
     //Serial.printlnf("time=%d",time);
     lastTime = millis();
 
-    TimePeriod timePeriod;
+    if(clockPeriodReceive != 0) {
+        TimePeriod timePeriod;
     
-    if(time > 1.9 * CLOCK_PERIOD) {
-        timePeriod = veryLongPeriod;
-    } else if( time <= 1.9 * CLOCK_PERIOD && time > 1.3 * CLOCK_PERIOD) {
-        timePeriod = longPeriod;
-    } else if( time <= 1.3 * CLOCK_PERIOD && time > 0.8 * CLOCK_PERIOD) {
-        timePeriod = mediumPeriod;
+        if(time > 1.9 * clockPeriodReceive) {
+            timePeriod = veryLongPeriod;
+        } else if( time <= 1.9 * clockPeriodReceive && time > 1.3 * clockPeriodReceive) {
+            timePeriod = longPeriod;
+        } else if( time <= 1.3 * clockPeriodReceive && time > 0.8 * clockPeriodReceive) {
+            timePeriod = mediumPeriod;
+        } else {
+            timePeriod = shortPeriod;
+        }
+        setNextState(timePeriod);
+        currentState = nextState;
+        setOutput();
     } else {
-        timePeriod = shortPeriod;
+        if (counter > 0) {
+            total += time;
+        }
+        if(counter == 7) {
+            clockPeriodReceive = total / counter;
+            Serial.println(clockPeriodReceive);
+        }
+        counter++;
     }
-    setNextState(timePeriod);
-    currentState = nextState;
-    setOutput();
 }
