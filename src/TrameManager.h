@@ -52,11 +52,7 @@ class TrameManager {
             static uint8_t message[nbBytesMax-4] = {};
 
             if(simulateError) {
-                if(trame[20] == 0 ) {
-                    trame[20] = 1;
-                } else {
-                    trame[20] = 0;
-                }
+                trame[20] = (trame[20] == 0) ? 1 : 0;
             }
 
             for(int i = 0; i < size/8; i++) {
