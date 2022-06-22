@@ -82,7 +82,7 @@ void threadFunction(void *param) {
     int bitsSize;
 
     char message[] = "Hello Etienne";
-    int charSize = 13;
+    int charSize = sizeof(message) - 1;
     uint8_t* messageBytes = messagesConverter.getBytes(message, charSize);
     int *bits = trameManager.getTrame(messageBytes, charSize);
     bitsSize = (charSize+4)*8;
